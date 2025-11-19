@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Laboratory Assistant</title>
+    <title>Assitente Pessoal de Laboratório</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -13,37 +13,17 @@
         </div>
         <div class="text-container" id="text-container"></div>
         <div class="control-container">
-            <button id="analyze-button" onclick="analyzeFrame()">
-                <span>👁️ Analyze</span>
-            </button>
-            <button id="settings-button" onclick="toggleSettingsModal()">
-                <span>⚙️ Settings</span>
+            <div class="interval-container">
+                <input type="number" id="interval-input" placeholder="Padrão 2 segundos" min="1">
+                <button onclick="setInterval()">Definir Intervalo de Captura</button>
+            </div>
+            <button id="control-button" onclick="toggleApp()">
+                <span>⏹ Parar</span>
             </button>
         </div>
     </div>
-
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close-button" onclick="toggleSettingsModal()">&times;</span>
-            <h2>Settings</h2>
-            <div class="setting">
-                <label for="api-key-input">OpenRouter API Key:</label>
-                <input type="password" id="api-key-input" placeholder="Enter your API Key">
-            </div>
-            <div class="setting">
-                <label for="model-input">Model:</label>
-                <input type="text" id="model-input" placeholder="e.g., google/gemini-1.5-flash-latest">
-            </div>
-            <div class="setting">
-                <label for="prompt-input">System Prompt:</label>
-                <textarea id="prompt-input" rows="4"></textarea>
-            </div>
-            <button onclick="saveSettings()">Save</button>
-        </div>
-    </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
+

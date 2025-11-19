@@ -1,13 +1,12 @@
 var socket = io();
+var running = true;
 
 socket.on('stream', function(data) {
-    console.log('Received stream data');
     var img = document.getElementById('video');
     img.src = 'data:image/jpeg;base64,' + data.image;
 });
 
 socket.on('text', function(data) {
-    console.log('Received text data:', data.message);
     var textContainer = document.getElementById('text-container');
     var newMessage = document.createElement('div');
     newMessage.classList.add('message');
@@ -16,61 +15,53 @@ socket.on('text', function(data) {
     textContainer.scrollTop = textContainer.scrollHeight;
 });
 
-socket.on('current_settings', function(data) {
-    console.log('Received settings:', data);
-    document.getElementById('api-key-input').value = data.api_key || '';
-    document.getElementById('model-input').value = data.model || '';
-    document.getElementById('prompt-input').value = data.prompt || '';
-});
-
-function analyzeFrame() {
-    console.log('Requesting analysis of the current frame.');
-    socket.emit('analyze_frame');
-}
-
-document.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-        // Avoid triggering analysis if the user is typing in the settings modal
-        if (document.getElementById('settings-modal').style.display === 'none') {
-            analyzeFrame();
-        }
-    }
-});
-
-function toggleSettingsModal() {
-    var modal = document.getElementById('settings-modal');
-    var isHidden = modal.style.display === 'none';
-    if (isHidden) {
-        // Request settings from backend when opening
-        socket.emit('get_settings');
-        modal.style.display = 'block';
+function toggleApp() {
+    var controlButton = document.getElementById('control-button');
+    if (running) {
+        fetch('/stop')
+            .then(response => response.json())
+            .then(data => {
+                console.log('App stopped:', data);
+                alert('The application has been stopped.');
+                controlButton.innerHTML = '<span>▶️ Resume</span>';
+                running = false;
+            })
+            .catch((error) => {
+                console.error('Error stopping the app:', error);
+            });
     } else {
-        modal.style.display = 'none';
+        fetch('/resume')
+            .then(response => response.json())
+            .then(data => {
+                console.log('App resumed:', data);
+                alert('The application has resumed.');
+                controlButton.innerHTML = '<span>⏹ Parar</span>';
+                running = true;
+            })
+            .catch((error) => {
+                console.error('Error resuming the app:', error);
+            });
     }
 }
 
-function saveSettings() {
-    var apiKey = document.getElementById('api-key-input').value;
-    var model = document.getElementById('model-input').value;
-    var prompt = document.getElementById('prompt-input').value;
-
-    fetch('/save_settings', {
+function setInterval() {
+    var intervalInput = document.getElementById('interval-input').value;
+    fetch('/set_interval', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ api_key: apiKey, model: model, prompt: prompt })
+        body: JSON.stringify({ interval: parseInt(intervalInput) })
     })
     .then(response => response.json())
     .then(data => {
-        if (data.status === 'success') {
-            alert('Settings saved successfully!');
-            toggleSettingsModal();
+        if (data.status === 'interval updated') {
+            alert('Capture interval updated to ' + data.interval + ' seconds.');
         } else {
-            alert('Failed to save settings: ' + data.message);
+            alert('Failed to update interval: ' + data.message);
         }
     })
     .catch(error => {
-        console.error('Error saving settings:', error);
+        console.error('Error setting interval:', error);
     });
 }
