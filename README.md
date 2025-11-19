@@ -12,4 +12,4 @@ This part contains the code and data for evaluating the multimodal LLM against a
 ## Part II: Real-World Evaluation of the Integrated Assistive System
 
 This part will contain the code and resources for the real-world evaluation of the integrated assistive system.
-This project is derived from [DIY-Astra](https://github.com/Doriandarko/DIY-Astra) and is divided into two parts, each contained within its own directory.
+This project is derived from [DIY-Astra](https://github.com/Doriandarko/DIY-Astra).
