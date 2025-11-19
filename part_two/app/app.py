@@ -15,13 +15,16 @@ import errno
 from gtts import gTTS
 import csv
 import pygame
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Initialize Flask app and SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
 # Set the API key for OpenRouter
-OPENROUTER_API_KEY = 'YOUR_OPENROUTER_API_KEY'
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 YOUR_SITE_URL = 'http://localhost:5001'
 YOUR_SITE_NAME = 'Laboratory Assistant'
 

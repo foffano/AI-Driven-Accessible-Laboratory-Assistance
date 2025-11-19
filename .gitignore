@@ -1,2 +1,4 @@
 .env
 part_two/config.json
+
+.env.example
