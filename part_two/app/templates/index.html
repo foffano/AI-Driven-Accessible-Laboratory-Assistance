@@ -8,6 +8,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assitente Pessoal de Laboratório</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
 <body>
     <div class="container">
         <div class="video-container">
@@ -21,6 +31,31 @@
             <button id="control-button" onclick="toggleApp()">
                 <span>⏹ Parar</span>
             </button>
+            <button id="settings-button" onclick="openSettings()">
+                <span>⚙️ Configurações</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeSettings()">&times;</span>
+            <h2>Configurações</h2>
+
+            <label for="api-key">API Key:</label>
+            <input type="password" id="api-key" placeholder="Enter OpenRouter API Key">
+
+            <label for="model">Model:</label>
+            <input type="text" id="model" placeholder="google/gemini-2.0-flash-exp:free">
+
+            <label for="prompt">Prompt:</label>
+            <textarea id="prompt" rows="4" placeholder="Enter system prompt..."></textarea>
+
+            <div class="modal-actions">
+                <button onclick="saveSettings()">Salvar</button>
+                <button onclick="closeSettings()" style="background-color: #666;">Cancelar</button>
+            </div>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>

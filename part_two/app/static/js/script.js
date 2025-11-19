@@ -70,3 +70,57 @@ function analyze() {
             analyzeButton.innerHTML = '<span>🔍 Analisar</span>';
         });
 }
+
+// Settings Modal Logic
+var modal = document.getElementById("settings-modal");
+
+function openSettings() {
+    fetch('/settings')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('api-key').value = data.api_key;
+            document.getElementById('model').value = data.model;
+            document.getElementById('prompt').value = data.prompt;
+            modal.style.display = "block";
+        })
+        .catch(error => console.error('Error loading settings:', error));
+}
+
+function closeSettings() {
+    modal.style.display = "none";
+}
+
+function saveSettings() {
+    var apiKey = document.getElementById('api-key').value;
+    var model = document.getElementById('model').value;
+    var prompt = document.getElementById('prompt').value;
+
+    fetch('/settings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            api_key: apiKey,
+            model: model,
+            prompt: prompt
+        }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Settings saved successfully!');
+                closeSettings();
+            } else {
+                alert('Error saving settings.');
+            }
+        })
+        .catch(error => console.error('Error saving settings:', error));
+}
+
+// Close modal when clicking outside of it
+window.onclick = function (event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}

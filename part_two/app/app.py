@@ -23,8 +23,26 @@ load_dotenv()
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
-# Set the API key for OpenRouter
-OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+# Settings file path
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'settings.json')
+
+def load_settings():
+    if os.path.exists(SETTINGS_FILE):
+        with open(SETTINGS_FILE, 'r') as f:
+            return json.load(f)
+    return {
+        "api_key": os.getenv('OPENROUTER_API_KEY', ''),
+        "model": "google/gemini-2.0-flash-exp:free",
+        "prompt": "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
+    }
+
+def save_settings(settings):
+    with open(SETTINGS_FILE, 'w') as f:
+        json.dump(settings, f, indent=4)
+
+# Load initial settings
+current_settings = load_settings()
+
 YOUR_SITE_URL = 'http://localhost:5001'
 YOUR_SITE_NAME = 'Laboratory Assistant'
 
@@ -87,14 +105,14 @@ def play_audio():
         finally:
             audio_playing.clear()
 
-def generate_new_line(encoded_image):
+def generate_new_line(encoded_image, prompt_text):
     return [
         {
             "role": "user",
             "content": [
                 {
                     "type": "text",
-                    "text": "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
+                    "text": prompt_text
                 },
                 {
                     "type": "image_url",
@@ -107,19 +125,27 @@ def generate_new_line(encoded_image):
     ]
 
 def analyze_image(encoded_image, script):
+    global current_settings
     try:
-        messages = script + generate_new_line(encoded_image)
+        # Refresh settings in case they were changed
+        current_settings = load_settings()
+        
+        api_key = current_settings.get('api_key') or os.getenv('OPENROUTER_API_KEY')
+        model = current_settings.get('model', "google/gemini-2.0-flash-exp:free")
+        prompt = current_settings.get('prompt', "You are a helpful and friendly lab assistant...")
+
+        messages = script + generate_new_line(encoded_image, prompt)
         
         response = requests.post(
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": YOUR_SITE_URL,
                 "X-Title": YOUR_SITE_NAME,
             },
             data=json.dumps({
-                "model": "google/gemini-2.0-flash-exp:free",
+                "model": model,
                 "messages": messages
             })
         )
@@ -195,6 +221,17 @@ def resume():
         capture_thread = threading.Thread(target=capture_images)
         capture_thread.start()
     return jsonify({"status": "resumed"})
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    global current_settings
+    if request.method == 'POST':
+        new_settings = request.json
+        save_settings(new_settings)
+        current_settings = new_settings
+        return jsonify({"status": "success", "message": "Settings saved"})
+    else:
+        return jsonify(load_settings())
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
