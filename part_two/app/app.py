@@ -7,7 +7,8 @@ import requests
 from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO, emit
 from queue import Queue
-import google.generativeai as genai
+import requests
+import json
 from PIL import Image
 import numpy as np
 import errno
@@ -19,12 +20,10 @@ import pygame
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
-# Set the API key for Google AI
-GOOGLE_API_KEY = 'YOUR_API_KEY'
-
-# Configure the Google AI client
-genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+# Set the API key for OpenRouter
+OPENROUTER_API_KEY = 'YOUR_OPENROUTER_API_KEY'
+YOUR_SITE_URL = 'http://localhost:5001'
+YOUR_SITE_NAME = 'Laboratory Assistant'
 
 # Folders to save frames, audios, and CSV file
 frame_folder = "frames"
@@ -89,37 +88,44 @@ def generate_new_line(encoded_image):
     return [
         {
             "role": "user",
-            "content": {
-                "parts": [
-                    {
-                        "text": "Por favor, descreva o que você vê em no máximo 30 palavras. Você é um assistente útil e amigável de laboratório. Se você visualizar situações perigosas, alerte de forma educativa!"
-                    },
-                    {
-                        "inline_data": {
-                            "mime_type": "image/jpeg",
-                            "data": encoded_image
-                        }
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Por favor, descreva o que você vê em no máximo 30 palavras. Você é um assistente útil e amigável de laboratório. Se você visualizar situações perigosas, alerte de forma educativa!"
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{encoded_image}"
                     }
-                ]
-            }
+                }
+            ]
         }
     ]
 
 def analyze_image(encoded_image, script):
     try:
         messages = script + generate_new_line(encoded_image)
-        content_messages = [
-            {
-                "role": message["role"],
-                "parts": [
-                    {"text": part["text"]} if "text" in part else {"inline_data": part["inline_data"]}
-                    for part in message["content"]["parts"]
-                ]
-            }
-            for message in messages
-        ]
-        response = model.generate_content(content_messages)
-        return response.text
+        
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": YOUR_SITE_URL,
+                "X-Title": YOUR_SITE_NAME,
+            },
+            data=json.dumps({
+                "model": "google/gemini-2.0-flash-exp:free",
+                "messages": messages
+            })
+        )
+        
+        if response.status_code == 200:
+            return response.json()['choices'][0]['message']['content']
+        else:
+            print(f"Error: {response.status_code} - {response.text}")
+            return ""
     except Exception as e:
         print(f"Error in analyze_image: {e}")
         return ""
@@ -215,14 +221,8 @@ def analyze():
         socketio.emit('text', {'message': response_text})
         script.append(
             {
-                "role": "model",
-                "content": {
-                    "parts": [
-                        {
-                            "text": response_text
-                        }
-                    ]
-                }
+                "role": "assistant",
+                "content": response_text
             }
         )
 
