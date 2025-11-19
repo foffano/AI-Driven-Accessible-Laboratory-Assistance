@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assitente Pessoal de Laboratório</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
+
 <body>
     <div class="container">
         <div class="video-container">
@@ -13,10 +15,9 @@
         </div>
         <div class="text-container" id="text-container"></div>
         <div class="control-container">
-            <div class="interval-container">
-                <input type="number" id="interval-input" placeholder="Padrão 2 segundos" min="1">
-                <button onclick="setInterval()">Definir Intervalo de Captura</button>
-            </div>
+            <button id="analyze-button" onclick="analyze()">
+                <span>🔍 Analisar</span>
+            </button>
             <button id="control-button" onclick="toggleApp()">
                 <span>⏹ Parar</span>
             </button>
@@ -25,5 +26,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
-</html>
 
+</html>

@@ -1,12 +1,12 @@
 var socket = io();
 var running = true;
 
-socket.on('stream', function(data) {
+socket.on('stream', function (data) {
     var img = document.getElementById('video');
     img.src = 'data:image/jpeg;base64,' + data.image;
 });
 
-socket.on('text', function(data) {
+socket.on('text', function (data) {
     var textContainer = document.getElementById('text-container');
     var newMessage = document.createElement('div');
     newMessage.classList.add('message');
@@ -44,24 +44,29 @@ function toggleApp() {
     }
 }
 
-function setInterval() {
-    var intervalInput = document.getElementById('interval-input').value;
-    fetch('/set_interval', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ interval: parseInt(intervalInput) })
+function analyze() {
+    var analyzeButton = document.getElementById('analyze-button');
+    analyzeButton.disabled = true;
+    analyzeButton.innerHTML = '<span>⏳ Analisando...</span>';
+
+    fetch('/analyze', {
+        method: 'POST'
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'interval updated') {
-            alert('Capture interval updated to ' + data.interval + ' seconds.');
-        } else {
-            alert('Failed to update interval: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error setting interval:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                console.log('Analysis success:', data.message);
+            } else {
+                console.error('Analysis failed:', data.message);
+                alert('Analysis failed: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error analyzing:', error);
+            alert('Error analyzing: ' + error);
+        })
+        .finally(() => {
+            analyzeButton.disabled = false;
+            analyzeButton.innerHTML = '<span>🔍 Analisar</span>';
+        });
 }

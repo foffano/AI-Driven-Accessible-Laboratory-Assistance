@@ -52,21 +52,8 @@ audio_playing = threading.Event()
 
 # Global variables
 running = True
-capture_interval = 2  # Default interval in seconds
-
-def encode_image(image_path):
-    while True:
-        try:
-            with open(image_path, "rb") as image_file:
-                encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
-            return encoded_image
-        except IOError as e:
-            if e.errno == errno.EACCES:
-                print("Permission denied, retrying in 5 seconds...")
-                time.sleep(5)
-            else:
-                print(f"Error {e.errno}: {e.strerror}")
-                return None
+latest_encoded_image = None
+script = []
 
 def generate_audio(text, filename):
     tts = gTTS(text, lang='pt-br')
@@ -138,11 +125,9 @@ def analyze_image(encoded_image, script):
         return ""
 
 def capture_images():
-    global capture_interval
-    global script
-    script = []
+    global running
+    global latest_encoded_image
     cap = cv2.VideoCapture(0)
-    results = []
 
     while running:
         try:
@@ -153,65 +138,29 @@ def capture_images():
                 ratio = max_size / max(pil_img.size)
                 new_size = tuple([int(x * ratio) for x in pil_img.size])
                 resized_img = pil_img.resize(new_size, Image.LANCZOS)
-                frame = cv2.cvtColor(np.array(resized_img), cv2.COLOR_RGB2BGR)
+                frame_resized = cv2.cvtColor(np.array(resized_img), cv2.COLOR_RGB2BGR)
 
-                image_id = int(time.time())
-                image_name = f"frame_{image_id}.jpg"
-                image_path = os.path.join(frame_folder, image_name)
-                cv2.imwrite(image_path, frame)
-                print(f"📸 Saving photo: {image_path}")
-
-                encoded_image = encode_image(image_path)
-                print(f"Encoded image: {encoded_image[:30]}...")
-
-                if not encoded_image:
-                    print("Failed to encode image. Retrying in 5 seconds...")
-                    time.sleep(5)
-                    continue
-
+                # Encode image to base64 string
+                _, buffer = cv2.imencode('.jpg', frame_resized)
+                encoded_image = base64.b64encode(buffer.tobytes()).decode('utf-8')
+                
+                latest_encoded_image = encoded_image
                 socketio.emit('stream', {'image': encoded_image})
                 
-                response_text = analyze_image(encoded_image, script)
-                print(f"Response: {response_text}")
-
-                with text_queue.mutex:
-                    text_queue.queue.clear()
-
-                text_queue.put(response_text)
-                socketio.emit('text', {'message': response_text})
-                script.append(
-                    {
-                        "role": "model",
-                        "content": {
-                            "parts": [
-                                {
-                                    "text": response_text
-                                }
-                            ]
-                        }
-                    }
-                )
-
-                audio_filename = f"audio_{image_id}.mp3"
-                audio_path = os.path.join(audio_folder, audio_filename)
-                generate_audio(response_text, audio_path)
-                results.append((image_name, response_text, audio_filename))
-
-                save_results_to_csv(results, csv_file)
-
             else:
                 print("Failed to capture image")
 
-            time.sleep(capture_interval)
+            time.sleep(0.05) # Faster refresh rate for smoother video
         except Exception as e:
             print(f"Error in capture_images: {e}")
     cap.release()
 
 def save_results_to_csv(results, csv_path):
     try:
-        with open(csv_path, mode='w', newline='', encoding='utf-8') as file:
+        with open(csv_path, mode='a', newline='', encoding='utf-8') as file: # Changed to append mode 'a'
             writer = csv.writer(file)
-            writer.writerow(['Image Name', 'Response', 'Audio Filename'])
+            if os.stat(csv_path).st_size == 0:
+                writer.writerow(['Image Name', 'Response', 'Audio Filename'])
             for result in results:
                 writer.writerow(result)
         print(f"Results saved to {csv_path}")
@@ -238,14 +187,56 @@ def resume():
         capture_thread.start()
     return jsonify({"status": "resumed"})
 
-@app.route('/set_interval', methods=['POST'])
-def set_interval():
-    global capture_interval
-    interval = request.json.get('interval')
-    if interval:
-        capture_interval = interval
-        return jsonify({"status": "interval updated", "interval": capture_interval})
-    return jsonify({"status": "failed", "message": "Invalid interval"}), 400
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    global latest_encoded_image
+    global script
+    
+    if not latest_encoded_image:
+        return jsonify({"status": "failed", "message": "No image available"}), 400
+
+    try:
+        image_id = int(time.time())
+        image_name = f"frame_{image_id}.jpg"
+        image_path = os.path.join(frame_folder, image_name)
+        
+        # Decode and save the image for record
+        with open(image_path, "wb") as fh:
+            fh.write(base64.b64decode(latest_encoded_image))
+        print(f"📸 Saving photo: {image_path}")
+
+        response_text = analyze_image(latest_encoded_image, script)
+        print(f"Response: {response_text}")
+
+        with text_queue.mutex:
+            text_queue.queue.clear()
+
+        text_queue.put(response_text)
+        socketio.emit('text', {'message': response_text})
+        script.append(
+            {
+                "role": "model",
+                "content": {
+                    "parts": [
+                        {
+                            "text": response_text
+                        }
+                    ]
+                }
+            }
+        )
+
+        audio_filename = f"audio_{image_id}.mp3"
+        audio_path = os.path.join(audio_folder, audio_filename)
+        generate_audio(response_text, audio_path)
+        
+        results = [(image_name, response_text, audio_filename)]
+        save_results_to_csv(results, csv_file)
+
+        return jsonify({"status": "success", "message": response_text})
+    except Exception as e:
+        print(f"Error during analysis: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 import webbrowser
 
