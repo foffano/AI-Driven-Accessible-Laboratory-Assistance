@@ -4,7 +4,7 @@ from gtts import gTTS
 from queue import Queue
 import threading
 
-audio_folder = "audio_responses"
+audio_folder = "../audio_responses"
 if not os.path.exists(audio_folder):
     os.makedirs(audio_folder)
 

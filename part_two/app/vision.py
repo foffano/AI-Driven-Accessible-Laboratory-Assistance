@@ -6,7 +6,7 @@ import requests
 from flask_socketio import emit
 import config
 
-frame_folder = "frames"
+frame_folder = "../frames"
 if not os.path.exists(frame_folder):
     os.makedirs(frame_folder)
 

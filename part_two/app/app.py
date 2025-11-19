@@ -16,7 +16,7 @@ socketio = SocketIO(app, cors_allowed_origins='*')
 
 # Global variables
 results = []
-csv_file = "results.csv"
+csv_file = "../results.csv"
 
 @app.route('/')
 def index():
