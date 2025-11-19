@@ -94,7 +94,7 @@ def generate_new_line(encoded_image):
             "content": [
                 {
                     "type": "text",
-                    "text": "Por favor, descreva o que você vê em no máximo 30 palavras. Você é um assistente útil e amigável de laboratório. Se você visualizar situações perigosas, alerte de forma educativa!"
+                    "text": "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
                 },
                 {
                     "type": "image_url",
