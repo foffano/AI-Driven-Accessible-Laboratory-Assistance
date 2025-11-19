@@ -18,7 +18,7 @@ PROMPT_TEXT = "Describe in detail what you see in this image."
 # Internal list of models to test
 # You may add or remove models depending on availability in OpenRouter
 MODEL_LIST = [
-    "google/gemini-flash-1.5",
+    "google/gemini-flash-2.5",
 ]
 
 # OpenRouter API URL
