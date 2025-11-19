@@ -4,36 +4,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assitente Pessoal de Laboratório</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assitente Pessoal de Laboratório</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Assistente Pessoal de Laboratório</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern_styles.css') }}">
 </head>
 
 <body>
-    <div class="container">
-        <div class="video-container">
-            <img id="video" src="">
+    <div class="app-container">
+        <!-- Main Video Feed -->
+        <div class="main-content">
+            <div class="video-wrapper">
+                <img id="video" src="" alt="Video Feed">
+            </div>
         </div>
-        <div class="text-container" id="text-container"></div>
-        <div class="control-container">
-            <button id="analyze-button" onclick="analyze()">
-                <span>🔍 Analisar</span>
-            </button>
-            <button id="control-button" onclick="toggleApp()">
-                <span>⏹ Parar</span>
-            </button>
-            <button id="settings-button" onclick="openSettings()">
-                <span>⚙️ Configurações</span>
-            </button>
+
+        <!-- Sidebar with Info and Controls -->
+        <div class="sidebar">
+            <!-- Text/Chat Panel -->
+            <div class="info-panel">
+                <div class="panel-header">Log de Atividades</div>
+                <div class="text-container" id="text-container">
+                    <!-- Messages will appear here -->
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls-wrapper">
+                <button id="analyze-button" onclick="analyze()">
+                    <span>🔍 Analisar</span>
+                </button>
+                <button id="control-button" onclick="toggleApp()">
+                    <span>⏹ Parar</span>
+                </button>
+                <button id="settings-button" onclick="openSettings()">
+                    <span>⚙️ Configurações</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -53,11 +61,12 @@
             <textarea id="prompt" rows="4" placeholder="Enter system prompt..."></textarea>
 
             <div class="modal-actions">
-                <button onclick="saveSettings()">Salvar</button>
-                <button onclick="closeSettings()" style="background-color: #666;">Cancelar</button>
+                <button onclick="saveSettings()" style="background: var(--primary-color); border: none;">Salvar</button>
+                <button onclick="closeSettings()" style="background: rgba(255, 255, 255, 0.1);">Cancelar</button>
             </div>
         </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
