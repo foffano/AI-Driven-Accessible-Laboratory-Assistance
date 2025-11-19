@@ -1,6 +1,8 @@
 # AI-Driven Accessible Laboratory Assistance
 
-This project is divided into two parts, each contained within its own directory.
+This project is derived from [DIY-Astra](https://github.com/your-username/diy-astra.git) and is divided into two parts, each contained within its own directory.
+
+**Important Note on API Keys:** For security reasons, API keys should never be hardcoded or committed directly into the repository. Please use environment variables to store and access your API keys.
 
 ## Part I: Evaluation of the Multimodal LLM Using a Controlled Image Dataset
 

@@ -1,4 +1,3 @@
-
 # DIY-Astra
 
 DIY-Astra is a Flask application that utilizes computer vision and natural language processing to create an interactive AI assistant. The application captures live video feed from a webcam, analyzes the captured images using the Google AI API, and generates text responses based on the visual input. The generated text responses are then converted to audio using the ElevenLabs API and played back to the user.
@@ -42,9 +41,14 @@ You also need to have valid API keys for the following services:
    pip install -r requirements.txt
    ```
 
-4. Set up the API keys:
-   - Replace `GOOGLE_API_KEY` in `app.py` with your Google AI API key.
-   - Replace `ELEVENLABS_API_KEY` in `app.py` with your ElevenLabs API key.
+4. Set up the API keys as environment variables:
+   ```bash
+   export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
+   export ELEVENLABS_API_KEY="YOUR_ELEVENLABS_API_KEY"
+   # For Windows, use `set` instead of `export`
+   # set GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
+   # set ELEVENLABS_API_KEY="YOUR_ELEVENLABS_API_KEY"
+   ```
 
 5. Run the application:
    ```bash
@@ -75,4 +79,3 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 
 ## License
 This project is licensed under the MIT License.
-

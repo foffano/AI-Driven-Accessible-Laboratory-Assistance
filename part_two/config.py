@@ -2,7 +2,7 @@ import os
 import json
 
 CONFIG_FILE = 'config.json'
-openrouter_api_key = None
+openrouter_api_key = os.environ.get('OPENROUTER_API_KEY') # Get from environment variable
 model_name = 'google/gemini-1.5-flash-latest'
 system_prompt = "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
 
@@ -12,7 +12,9 @@ def load_config():
         if os.path.exists(CONFIG_FILE):
             with open(CONFIG_FILE, 'r') as f:
                 config = json.load(f)
-                openrouter_api_key = config.get('openrouter_api_key', openrouter_api_key)
+                # Only update if the environment variable was not set
+                if openrouter_api_key is None:
+                    openrouter_api_key = config.get('openrouter_api_key', None)
                 model_name = config.get('model_name', model_name)
                 system_prompt = config.get('system_prompt', system_prompt)
     except Exception as e:
@@ -22,7 +24,7 @@ def save_config():
     try:
         with open(CONFIG_FILE, 'w') as f:
             config = {
-                'openrouter_api_key': openrouter_api_key,
+                # Do not save API key to config.json
                 'model_name': model_name,
                 'system_prompt': system_prompt
             }
