@@ -3,22 +3,25 @@ import base64
 import requests
 import csv
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- CONFIGURATIONS ---
 
 # Replace with your OpenRouter API key
-OPENROUTER_API_KEY = "sk-or-v1-..." 
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY") 
 
 # Name of the folder containing the images
 DATASET_FOLDER = "dataset"
 
 # The prompt that will be sent together with each image
-PROMPT_TEXT = "Describe in detail what you see in this image."
+PROMPT_TEXT = "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
 
 # Internal list of models to test
 # You may add or remove models depending on availability in OpenRouter
 MODEL_LIST = [
-    "google/gemini-flash-2.5",
+    "google/gemini-2.5-flash",
 ]
 
 # OpenRouter API URL
