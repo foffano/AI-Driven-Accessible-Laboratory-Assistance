@@ -16,21 +16,7 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 latest_encoded_image = None
 script = []
 
-def encode_image(image_path):
-    while True:
-        try:
-            with open(image_path, "rb") as image_file:
-                encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
-            return encoded_image
-        except FileNotFoundError:
-            print(f"File not found: {image_path}, retrying in 1 second...")
-            time.sleep(1)
-        except IOError as e:
-            print(f"IOError: {e}, retrying in 5 seconds...")
-            time.sleep(5)
-        except Exception as e:
-            print(f"Unexpected error in encode_image: {e}")
-            return None
+
 
 def generate_new_line(encoded_image):
     return {
@@ -106,13 +92,9 @@ def capture_images(socketio):
                     new_w, new_h = int(w * scale), int(h * scale)
                     frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-                image_id = int(time.time())
-                image_name = f"frame_{image_id}.jpg"
-                image_path = os.path.join(frame_folder, image_name)
-                # Save the image temporarily to be encoded
-                cv2.imwrite(image_path, frame)
-                
-                encoded_image = encode_image(image_path)
+                # Encode the frame directly without saving to disk
+                _, buffer = cv2.imencode('.jpg', frame)
+                encoded_image = base64.b64encode(buffer).decode("utf-8")
                 
                 if not encoded_image:
                     print("Failed to encode image. Retrying in 1 second...")

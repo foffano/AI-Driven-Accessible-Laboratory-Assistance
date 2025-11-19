@@ -1,4 +1,0 @@
-{
-    "openrouter_api_key": "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",
-    "model_name": "google/gemini-2.5-flash",
-    "system_prompt": "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
