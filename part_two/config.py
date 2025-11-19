@@ -3,7 +3,7 @@ import json
 
 CONFIG_FILE = 'config.json'
 openrouter_api_key = os.environ.get('OPENROUTER_API_KEY') # Get from environment variable
-model_name = 'google/gemini-1.5-flash-latest'
+model_name = 'google/gemini-2.5-flash'
 system_prompt = "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
 
 def load_config():
