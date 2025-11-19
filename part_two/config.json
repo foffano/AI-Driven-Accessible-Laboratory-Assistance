@@ -1,5 +1,4 @@
 {
     "openrouter_api_key": "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",
-    "model_name": "google/gemini-2.0-flash-001",
-    "system_prompt": "Por favor, descreva o que voc\u00ea v\u00ea em no m\u00e1ximo 30 palavras. Voc\u00ea \u00e9 um assistente \u00fatil e amig\u00e1vel de laborat\u00f3rio. Se voc\u00ea visualizar situa\u00e7\u00f5es perigosas, alerte de forma educativa!"
-}
+    "model_name": "google/gemini-2.5-flash",
+    "system_prompt": "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
