@@ -4,49 +4,46 @@ import requests
 import csv
 import time
 
-# --- CONFIGURAÇÕES ---
+# --- CONFIGURATIONS ---
 
-# Substitua pela sua chave da OpenRouter
+# Replace with your OpenRouter API key
 OPENROUTER_API_KEY = "sk-or-v1-..." 
 
-# Nome da pasta onde estão as imagens
+# Name of the folder containing the images
 DATASET_FOLDER = "dataset"
 
-# O prompt que será enviado junto com cada imagem
-PROMPT_TEXT = "Descreva detalhadamente o que você vê nesta imagem."
+# The prompt that will be sent together with each image
+PROMPT_TEXT = "Describe in detail what you see in this image."
 
-# Lista interna de modelos para testar
-# Você pode adicionar ou remover modelos conforme a disponibilidade na OpenRouter
+# Internal list of models to test
+# You may add or remove models depending on availability in OpenRouter
 MODEL_LIST = [
     "google/gemini-flash-1.5",
-    "openai/gpt-4o-mini",
-    "meta-llama/llama-3.2-11b-vision-instruct",
-    "anthropic/claude-3-haiku"
 ]
 
-# URL da API OpenRouter
+# OpenRouter API URL
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# --- FUNÇÕES AUXILIARES ---
+# --- HELPER FUNCTIONS ---
 
 def encode_image(image_path):
-    """Lê uma imagem e converte para string Base64."""
+    """Reads an image file and converts it to a Base64 string."""
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
 def get_image_files(folder):
-    """Retorna lista de arquivos de imagem na pasta."""
+    """Returns a list of image files in the folder."""
     valid_extensions = ('.png', '.jpg', '.jpeg', '.webp', '.gif')
     return [f for f in os.listdir(folder) if f.lower().endswith(valid_extensions)]
 
 def analyze_image(model, base64_image, prompt):
-    """Envia a requisição para a API."""
+    """Sends the request to the API."""
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
-        # Cabeçalhos opcionais recomendados pela OpenRouter
+        # Optional headers recommended by OpenRouter
         "HTTP-Referer": "http://localhost:8000", 
-        "X-Title": "Script de Analise de Dataset",
+        "X-Title": "Dataset Analysis Script",
     }
 
     payload = {
@@ -72,63 +69,63 @@ def analyze_image(model, base64_image, prompt):
 
     try:
         response = requests.post(API_URL, headers=headers, json=payload)
-        response.raise_for_status() # Levanta erro se não for 200 OK
+        response.raise_for_status()  # Raises error if status is not 200 OK
         data = response.json()
         return data['choices'][0]['message']['content']
     except Exception as e:
-        print(f"Erro ao processar modelo {model}: {e}")
-        return f"ERRO: {str(e)}"
+        print(f"Error while processing model {model}: {e}")
+        return f"ERROR: {str(e)}"
 
-# --- BLOCO PRINCIPAL ---
+# --- MAIN BLOCK ---
 
 def main():
-    # Verifica se a pasta existe
+    # Check if the folder exists
     if not os.path.exists(DATASET_FOLDER):
-        print(f"Erro: A pasta '{DATASET_FOLDER}' não foi encontrada.")
+        print(f"Error: Folder '{DATASET_FOLDER}' not found.")
         return
 
     images = get_image_files(DATASET_FOLDER)
     
     if not images:
-        print(f"Nenhuma imagem encontrada na pasta '{DATASET_FOLDER}'.")
+        print(f"No images found in folder '{DATASET_FOLDER}'.")
         return
 
-    print(f"Encontradas {len(images)} imagens. Iniciando análise em {len(MODEL_LIST)} modelos...")
+    print(f"Found {len(images)} images. Starting analysis using {len(MODEL_LIST)} models...")
 
-    # Loop pelos modelos
+    # Loop through models
     for model in MODEL_LIST:
-        # Cria um nome de arquivo seguro (substitui / por _)
+        # Create a safe filename (replace / with _)
         safe_model_name = model.replace("/", "_")
-        csv_filename = f"resultados_{safe_model_name}.csv"
+        csv_filename = f"results_{safe_model_name}.csv"
         
-        print(f"\n--- Iniciando modelo: {model} ---")
-        print(f"Salvando em: {csv_filename}")
+        print(f"\n--- Starting model: {model} ---")
+        print(f"Saving to: {csv_filename}")
 
-        # Abre o CSV para escrita
+        # Open CSV file for writing
         with open(csv_filename, mode='w', newline='', encoding='utf-8') as csv_file:
             writer = csv.writer(csv_file)
-            # Cabeçalho do CSV
-            writer.writerow(["id_image", "prompt", "model", "response"])
+            # CSV header
+            writer.writerow(["image_id", "prompt", "model", "response"])
 
-            # Loop pelas imagens
+            # Loop through images
             for img_name in images:
                 img_path = os.path.join(DATASET_FOLDER, img_name)
                 
-                print(f"Processando {img_name} com {model}...")
+                print(f"Processing {img_name} with {model}...")
                 
-                # 1. Codificar imagem
+                # 1. Encode image
                 base64_img = encode_image(img_path)
                 
-                # 2. Enviar request
+                # 2. Send request
                 res_text = analyze_image(model, base64_img, PROMPT_TEXT)
                 
-                # 3. Salvar linha no CSV
+                # 3. Save row in CSV
                 writer.writerow([img_name, PROMPT_TEXT, model, res_text])
                 
-                # Pequena pausa para evitar Rate Limiting agressivo
+                # Small delay to avoid aggressive rate limiting
                 time.sleep(1) 
 
-    print("\nProcesso finalizado! Verifique os arquivos .csv gerados.")
+    print("\nProcess completed! Check the generated .csv files.")
 
 if __name__ == "__main__":
     main()
