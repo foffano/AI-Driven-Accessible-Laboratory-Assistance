@@ -1,0 +1,9 @@
+flask
+flask-socketio
+requests
+python-dotenv
+opencv-python
+Pillow
+numpy
+gTTS
+pygame
