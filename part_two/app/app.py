@@ -33,7 +33,8 @@ def load_settings():
     return {
         "api_key": os.getenv('OPENROUTER_API_KEY', ''),
         "model": "google/gemini-2.0-flash-exp:free",
-        "prompt": "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words."
+        "prompt": "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words.",
+        "language": "en"
     }
 
 def save_settings(settings):
@@ -76,7 +77,9 @@ latest_encoded_image = None
 script = []
 
 def generate_audio(text, filename):
-    tts = gTTS(text, lang='en')
+    global current_settings
+    lang = current_settings.get('language', 'en')
+    tts = gTTS(text, lang=lang)
     tts.save(filename)
     print(f"Audio saved to {filename}")
 
