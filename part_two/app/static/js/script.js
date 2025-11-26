@@ -1,3 +1,17 @@
+// Copyright 2025 AI-Driven Accessible Laboratory Assistance
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 var socket = io();
 var running = true;
 var currentLang = 'en';
@@ -5,7 +19,7 @@ var currentLang = 'en';
 const translations = {
     'en': {
         'analyze': '🔍 Analyze',
-        'analyzing': '⏳ Analyzing...', 
+        'analyzing': '⏳ Analyzing...',
         'stop': '⏹ Stop',
         'resume': '▶️ Resume',
         'settings': '⚙️ Settings',
@@ -24,12 +38,12 @@ const translations = {
         'analysisSuccess': 'Analysis success:',
         'analysisFailed': 'Analysis failed:',
         'errorAnalyzing': 'Error analyzing:',
-        'thinking': 'Thinking...', 
+        'thinking': 'Thinking...',
         'error': 'Error: '
     },
     'pt': {
         'analyze': '🔍 Analisar',
-        'analyzing': '⏳ Analisando...', 
+        'analyzing': '⏳ Analisando...',
         'stop': '⏹ Parar',
         'resume': '▶️ Retomar',
         'settings': '⚙️ Configurações',
@@ -48,12 +62,12 @@ const translations = {
         'analysisSuccess': 'Análise bem-sucedida:',
         'analysisFailed': 'Falha na análise:',
         'errorAnalyzing': 'Erro ao analisar:',
-        'thinking': 'Pensando...', 
+        'thinking': 'Pensando...',
         'error': 'Erro: '
     },
     'es': {
         'analyze': '🔍 Analizar',
-        'analyzing': '⏳ Analizando...', 
+        'analyzing': '⏳ Analizando...',
         'stop': '⏹ Detener',
         'resume': '▶️ Reanudar',
         'settings': '⚙️ Configuración',
@@ -72,12 +86,12 @@ const translations = {
         'analysisSuccess': 'Análisis exitoso:',
         'analysisFailed': 'Análisis fallido:',
         'errorAnalyzing': 'Error al analizar:',
-        'thinking': 'Pensando...', 
+        'thinking': 'Pensando...',
         'error': 'Error: '
     },
     'fr': {
         'analyze': '🔍 Analyser',
-        'analyzing': '⏳ Analyse...', 
+        'analyzing': '⏳ Analyse...',
         'stop': '⏹ Arrêter',
         'resume': '▶️ Reprendre',
         'settings': '⚙️ Paramètres',
@@ -96,12 +110,12 @@ const translations = {
         'analysisSuccess': 'Analyse réussie :',
         'analysisFailed': 'Échec de l\'analyse :',
         'errorAnalyzing': 'Erreur lors de l\'analyse :',
-        'thinking': 'Réflexion...', 
+        'thinking': 'Réflexion...',
         'error': 'Erreur : '
     },
     'de': {
         'analyze': '🔍 Analysieren',
-        'analyzing': '⏳ Analysieren...', 
+        'analyzing': '⏳ Analysieren...',
         'stop': '⏹ Stopp',
         'resume': '▶️ Fortsetzen',
         'settings': '⚙️ Einstellungen',
@@ -120,7 +134,7 @@ const translations = {
         'analysisSuccess': 'Analyse erfolgreich:',
         'analysisFailed': 'Analyse fehlgeschlagen:',
         'errorAnalyzing': 'Fehler bei der Analyse:',
-        'thinking': 'Nachdenken...', 
+        'thinking': 'Nachdenken...',
         'error': 'Fehler: '
     }
 };
@@ -132,11 +146,11 @@ function getTrans(key) {
 function updateUIText(lang) {
     currentLang = lang;
     const t = translations[lang] || translations['en'];
-    
+
     // Buttons
     const analyzeBtn = document.getElementById('analyze-button');
     if (analyzeBtn && !analyzeBtn.disabled) analyzeBtn.querySelector('span').textContent = t.analyze;
-    
+
     const controlBtn = document.getElementById('control-button');
     if (controlBtn) {
         if (running) {
@@ -233,7 +247,7 @@ function analyze() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
+
     // Convert to base64 (remove the data URL prefix)
     var imageData = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
@@ -248,7 +262,7 @@ function analyze() {
         .then(data => {
             // Remove thinking message
             thinkingMsg.remove();
-            
+
             if (data.status === 'success') {
                 console.log('Analysis success:', data.message);
                 appendMessage(data.message);
