@@ -1,4 +1,5 @@
 import os
+import sys
 import cv2
 import threading
 import base64
@@ -24,7 +25,21 @@ app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
 # Settings file path
-SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'settings.json')
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, the PyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app 
+    # path into variable _MEIPASS'.
+    # For settings we want them next to the executable, not in the temp _MEIPASS
+    base_path = os.path.dirname(sys.executable)
+    # Also fix the path for templates and static if they are bundled
+    # Flask needs to know where to look if we are frozen
+    if hasattr(sys, '_MEIPASS'):
+        app.template_folder = os.path.join(sys._MEIPASS, 'templates')
+        app.static_folder = os.path.join(sys._MEIPASS, 'static')
+else:
+    base_path = os.path.dirname(os.path.abspath(__file__))
+
+SETTINGS_FILE = os.path.join(base_path, 'settings.json')
 
 def load_settings():
     if os.path.exists(SETTINGS_FILE):
