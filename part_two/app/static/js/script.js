@@ -180,13 +180,6 @@ function updateUIText(lang) {
     if (panelHeader) panelHeader.textContent = t.panelHeader;
 }
 
-socket.on('stream', function (data) {
-    var img = document.getElementById('video');
-    img.src = 'data:image/jpeg;base64,' + data.image;
-});
-
-// socket.on('text', ...) removed to rely on HTTP response for better reliability
-
 function appendMessage(text, isSystem = false) {
     var textContainer = document.getElementById('text-container');
     var newMessage = document.createElement('div');
@@ -203,43 +196,53 @@ function appendMessage(text, isSystem = false) {
 
 function toggleApp() {
     var controlButton = document.getElementById('control-button');
+    var video = document.getElementById('video');
+
     if (running) {
-        fetch('/stop')
-            .then(response => response.json())
-            .then(data => {
-                console.log('App stopped:', data);
-                alert(getTrans('appStopped'));
-                controlButton.innerHTML = '<span>' + getTrans('resume') + '</span>';
-                running = false;
-            })
-            .catch((error) => {
-                console.error('Error stopping the app:', error);
-            });
+        // Pause video
+        if (video) video.pause();
+        console.log('App stopped (video paused)');
+        alert(getTrans('appStopped'));
+        controlButton.innerHTML = '<span>' + getTrans('resume') + '</span>';
+        running = false;
     } else {
-        fetch('/resume')
-            .then(response => response.json())
-            .then(data => {
-                console.log('App resumed:', data);
-                alert(getTrans('appResumed'));
-                controlButton.innerHTML = '<span>' + getTrans('stop') + '</span>';
-                running = true;
-            })
-            .catch((error) => {
-                console.error('Error resuming the app:', error);
-            });
+        // Resume video
+        if (video) video.play();
+        console.log('App resumed (video playing)');
+        alert(getTrans('appResumed'));
+        controlButton.innerHTML = '<span>' + getTrans('stop') + '</span>';
+        running = true;
     }
 }
 
 function analyze() {
     var analyzeButton = document.getElementById('analyze-button');
+    var video = document.getElementById('video');
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+
+    if (!video || !canvas) return;
+
     analyzeButton.disabled = true;
     analyzeButton.innerHTML = '<span>' + getTrans('analyzing') + '</span>';
 
     // Add temporary thinking message
     var thinkingMsg = appendMessage(getTrans('thinking'), true);
 
+    // Capture current video frame
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convert to base64 (remove the data URL prefix)
+    var imageData = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
     fetch('/analyze', {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: imageData })
     })
         .then(response => response.json())
         .then(data => {
@@ -328,6 +331,23 @@ window.onclick = function (event) {
 
 // Initialize UI with correct language on load
 document.addEventListener('DOMContentLoaded', () => {
+    // Start Video Stream
+    var video = document.getElementById('video');
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(function (error) {
+                console.error("Error accessing webcam:", error);
+                alert("Error accessing webcam. Please make sure it is connected and permissions are granted.");
+            });
+    } else {
+        console.error("getUserMedia not supported");
+        alert("Your browser does not support webcam access.");
+    }
+
     fetch('/settings')
         .then(response => response.json())
         .then(data => {

@@ -58,13 +58,6 @@ if not os.path.exists(frame_folder):
 if not os.path.exists(audio_folder):
     os.makedirs(audio_folder)
 
-# Initialize the webcam
-cap = cv2.VideoCapture(0)
-
-# Check if the webcam is opened correctly
-if not cap.isOpened():
-    raise IOError("Cannot open webcam")
-
 # Queue to store text responses
 text_queue = Queue()
 
@@ -73,7 +66,6 @@ audio_playing = threading.Event()
 
 # Global variables
 running = True
-latest_encoded_image = None
 script = []
 
 def generate_audio(text, filename):
@@ -159,37 +151,6 @@ def analyze_image(encoded_image, script):
         print(f"Error in analyze_image: {e}")
         return ""
 
-def capture_images():
-    global running
-    global latest_encoded_image
-    cap = cv2.VideoCapture(0)
-
-    while running:
-        try:
-            ret, frame = cap.read()
-            if ret:
-                pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                max_size = 250
-                ratio = max_size / max(pil_img.size)
-                new_size = tuple([int(x * ratio) for x in pil_img.size])
-                resized_img = pil_img.resize(new_size, Image.LANCZOS)
-                frame_resized = cv2.cvtColor(np.array(resized_img), cv2.COLOR_RGB2BGR)
-
-                # Encode image to base64 string
-                _, buffer = cv2.imencode('.jpg', frame_resized)
-                encoded_image = base64.b64encode(buffer.tobytes()).decode('utf-8')
-                
-                latest_encoded_image = encoded_image
-                socketio.emit('stream', {'image': encoded_image})
-                
-            else:
-                print("Failed to capture image")
-
-            time.sleep(0.05) # Faster refresh rate for smoother video
-        except Exception as e:
-            print(f"Error in capture_images: {e}")
-    cap.release()
-
 def save_results_to_csv(results, csv_path):
     try:
         with open(csv_path, mode='a', newline='', encoding='utf-8') as file: # Changed to append mode 'a'
@@ -215,11 +176,7 @@ def stop():
 @app.route('/resume')
 def resume():
     global running
-    global capture_thread
     running = True
-    if not capture_thread.is_alive():
-        capture_thread = threading.Thread(target=capture_images)
-        capture_thread.start()
     return jsonify({"status": "resumed"})
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -235,13 +192,16 @@ def settings():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    global latest_encoded_image
     global script
     
-    if not latest_encoded_image:
-        return jsonify({"status": "failed", "message": "No image available"}), 400
-
     try:
+        # Get image from request data
+        data = request.json
+        latest_encoded_image = data.get('image')
+
+        if not latest_encoded_image:
+            return jsonify({"status": "failed", "message": "No image provided"}), 400
+
         image_id = int(time.time())
         image_name = f"frame_{image_id}.jpg"
         image_path = os.path.join(frame_folder, image_name)
@@ -282,15 +242,13 @@ def analyze():
 import webbrowser
 
 if __name__ == '__main__':
-    global capture_thread
     global audio_thread
     running = True
-    capture_thread = threading.Thread(target=capture_images)
-    capture_thread.start()
+    # Capture thread removed
     audio_thread = threading.Thread(target=play_audio)
     audio_thread.start()
     webbrowser.open('http://localhost:5001')
     socketio.run(app, host='0.0.0.0', port=5001)
-    capture_thread.join()
+    # capture_thread.join() removed
     text_queue.put(None)
     audio_thread.join()
