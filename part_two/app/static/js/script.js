@@ -6,14 +6,21 @@ socket.on('stream', function (data) {
     img.src = 'data:image/jpeg;base64,' + data.image;
 });
 
-socket.on('text', function (data) {
+// socket.on('text', ...) removed to rely on HTTP response for better reliability
+
+function appendMessage(text, isSystem = false) {
     var textContainer = document.getElementById('text-container');
     var newMessage = document.createElement('div');
     newMessage.classList.add('message');
-    newMessage.textContent = data.message;
+    if (isSystem) {
+        newMessage.style.fontStyle = 'italic';
+        newMessage.style.opacity = '0.7';
+    }
+    newMessage.textContent = text;
     textContainer.appendChild(newMessage);
     textContainer.scrollTop = textContainer.scrollHeight;
-});
+    return newMessage;
+}
 
 function toggleApp() {
     var controlButton = document.getElementById('control-button');
@@ -35,7 +42,7 @@ function toggleApp() {
             .then(data => {
                 console.log('App resumed:', data);
                 alert('The application has resumed.');
-                controlButton.innerHTML = '<span>⏹ Parar</span>';
+                controlButton.innerHTML = '<span>⏹ Stop</span>';
                 running = true;
             })
             .catch((error) => {
@@ -47,27 +54,37 @@ function toggleApp() {
 function analyze() {
     var analyzeButton = document.getElementById('analyze-button');
     analyzeButton.disabled = true;
-    analyzeButton.innerHTML = '<span>⏳ Analisando...</span>';
+    analyzeButton.innerHTML = '<span>⏳ Analyzing...</span>';
+
+    // Add temporary thinking message
+    var thinkingMsg = appendMessage('Thinking...', true);
 
     fetch('/analyze', {
         method: 'POST'
     })
         .then(response => response.json())
         .then(data => {
+            // Remove thinking message
+            thinkingMsg.remove();
+            
             if (data.status === 'success') {
                 console.log('Analysis success:', data.message);
+                appendMessage(data.message);
             } else {
                 console.error('Analysis failed:', data.message);
+                appendMessage('Error: ' + data.message, true);
                 alert('Analysis failed: ' + data.message);
             }
         })
         .catch(error => {
+            thinkingMsg.remove();
             console.error('Error analyzing:', error);
+            appendMessage('Error: ' + error, true);
             alert('Error analyzing: ' + error);
         })
         .finally(() => {
             analyzeButton.disabled = false;
-            analyzeButton.innerHTML = '<span>🔍 Analisar</span>';
+            analyzeButton.innerHTML = '<span>🔍 Analyze</span>';
         });
 }
 

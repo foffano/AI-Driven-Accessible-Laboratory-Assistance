@@ -83,15 +83,12 @@ def generate_audio(text, filename):
 def play_audio():
     global audio_playing
     while True:
-        text = text_queue.get()
-        if text is None:
+        audio_path = text_queue.get()
+        if audio_path is None:
             break
         audio_playing.set()
         try:
-            audio_files = [f for f in os.listdir(audio_folder) if f.endswith('.mp3')]
-            if audio_files:
-                latest_audio_file = max(audio_files, key=lambda x: os.path.getctime(os.path.join(audio_folder, x)))
-                audio_path = os.path.abspath(os.path.join(audio_folder, latest_audio_file))
+            if os.path.exists(audio_path):
                 pygame.mixer.init()
                 pygame.mixer.music.load(audio_path)
                 pygame.mixer.music.play()
@@ -99,7 +96,7 @@ def play_audio():
                     continue
                 print(f"Playing audio: {audio_path}")
             else:
-                print("No audio files found.")
+                print(f"Audio file not found: {audio_path}")
         except Exception as e:
             print(f"Error in play_audio: {e}")
         finally:
@@ -254,10 +251,6 @@ def analyze():
         response_text = analyze_image(latest_encoded_image, script)
         print(f"Response: {response_text}")
 
-        with text_queue.mutex:
-            text_queue.queue.clear()
-
-        text_queue.put(response_text)
         socketio.emit('text', {'message': response_text})
         script.append(
             {
@@ -268,7 +261,12 @@ def analyze():
 
         audio_filename = f"audio_{image_id}.mp3"
         audio_path = os.path.join(audio_folder, audio_filename)
+        # Generate audio BEFORE putting in queue
         generate_audio(response_text, audio_path)
+        
+        with text_queue.mutex:
+            text_queue.queue.clear()
+        text_queue.put(audio_path)
         
         results = [(image_name, response_text, audio_filename)]
         save_results_to_csv(results, csv_file)

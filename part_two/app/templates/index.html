@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistente Pessoal de Laboratório</title>
+    <title>Personal Lab Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@
         <div class="sidebar">
             <!-- Text/Chat Panel -->
             <div class="info-panel">
-                <div class="panel-header">Log de Atividades</div>
+                <div class="panel-header">Assistant Response</div>
                 <div class="text-container" id="text-container">
                     <!-- Messages will appear here -->
                 </div>
@@ -33,13 +33,13 @@
             <!-- Controls -->
             <div class="controls-wrapper">
                 <button id="analyze-button" onclick="analyze()">
-                    <span>🔍 Analisar</span>
+                    <span>🔍 Analyze</span>
                 </button>
                 <button id="control-button" onclick="toggleApp()">
-                    <span>⏹ Parar</span>
+                    <span>⏹ Stop</span>
                 </button>
                 <button id="settings-button" onclick="openSettings()">
-                    <span>⚙️ Configurações</span>
+                    <span>⚙️ Settings</span>
                 </button>
             </div>
         </div>
@@ -49,7 +49,7 @@
     <div id="settings-modal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeSettings()">&times;</span>
-            <h2>Configurações</h2>
+            <h2>Settings</h2>
 
             <label for="api-key">API Key:</label>
             <input type="password" id="api-key" placeholder="Enter OpenRouter API Key">
@@ -61,8 +61,8 @@
             <textarea id="prompt" rows="4" placeholder="Enter system prompt..."></textarea>
 
             <div class="modal-actions">
-                <button onclick="saveSettings()" style="background: var(--primary-color); border: none;">Salvar</button>
-                <button onclick="closeSettings()" style="background: rgba(255, 255, 255, 0.1);">Cancelar</button>
+                <button onclick="saveSettings()" style="background: var(--primary-color); border: none;">Save</button>
+                <button onclick="closeSettings()" style="background: rgba(255, 255, 255, 0.1);">Cancel</button>
             </div>
         </div>
     </div>
