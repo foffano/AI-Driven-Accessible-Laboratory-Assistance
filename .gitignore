@@ -4,3 +4,5 @@ part_two/config.json
 .env.example
 
 part_two/app/settings.json
+
+part_two/app/dist/settings.json
