@@ -76,7 +76,7 @@ latest_encoded_image = None
 script = []
 
 def generate_audio(text, filename):
-    tts = gTTS(text, lang='pt-br')
+    tts = gTTS(text, lang='en')
     tts.save(filename)
     print(f"Audio saved to {filename}")
 
