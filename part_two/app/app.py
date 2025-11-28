@@ -61,7 +61,7 @@ def load_settings():
             return json.load(f)
     return {
         "api_key": os.getenv('OPENROUTER_API_KEY', ''),
-        "model": "google/gemini-2.0-flash-exp:free",
+        "model": "google/gemini-2.5-flash",
         "prompt": "You are a helpful and friendly lab assistant. Describe what you see in the image. If you detect any safety hazards, include a brief educational alert. Limit your response to a maximum of 30 words.",
         "language": "en"
     }
@@ -152,7 +152,7 @@ def analyze_image(encoded_image, script):
         current_settings = load_settings()
         
         api_key = current_settings.get('api_key') or os.getenv('OPENROUTER_API_KEY')
-        model = current_settings.get('model', "google/gemini-2.0-flash-exp:free")
+        model = current_settings.get('model', "google/gemini-2.5-flash")
         prompt = current_settings.get('prompt', "You are a helpful and friendly lab assistant...")
 
         messages = script + generate_new_line(encoded_image, prompt)
@@ -185,7 +185,7 @@ def save_results_to_csv(results, csv_path):
         with open(csv_path, mode='a', newline='', encoding='utf-8') as file: # Changed to append mode 'a'
             writer = csv.writer(file)
             if os.stat(csv_path).st_size == 0:
-                writer.writerow(['Image Name', 'Response', 'Audio Filename'])
+                writer.writerow(['Image Name', 'Response', 'Audio Filename', 'Prompt'])
             for result in results:
                 writer.writerow(result)
         print(f"Results saved to {csv_path}")
@@ -260,7 +260,8 @@ def analyze():
             text_queue.queue.clear()
         text_queue.put(audio_path)
         
-        results = [(image_name, response_text, audio_filename)]
+        prompt = current_settings.get('prompt', "You are a helpful and friendly lab assistant...")
+        results = [(image_name, response_text, audio_filename, prompt)]
         save_results_to_csv(results, csv_file)
 
         return jsonify({"status": "success", "message": response_text})
